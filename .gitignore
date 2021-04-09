@@ -1,0 +1,6 @@
+*.stl
+*.svg
+*.gcode
+*.png
+*.jpg
+.vscode
