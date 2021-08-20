@@ -9,22 +9,22 @@ def main():
     parser = AP(description="Convert QR path SVGs to STLs")
     parser.add_argument("svg", help="Filename of SVG to convert")
     parser.add_argument("stl", help="STL to store converted SVG")
-    parser.add_argument("--zb", type=int, help="Z step of background", default=5)
-    parser.add_argument("--zf", type=int, help="Z step of foreground", default=3)
-    parser.add_argument("--m", type=float, help="XY scale", default = 1.0) 
+    parser.add_argument("--background-depth", "-b", type=int, help="Depth in mm of background (Default: 5mm)", default=5)
+    parser.add_argument("--foreground-depth", "-f", type=int, help="Depth in mm of foreground (Default: 3mm)", default=3)
+    parser.add_argument("--scale", "-s", type=float, help="XY scale (Default: 1.0)", default = 1.0) 
     args = parser.parse_args()
 
     tree = ET.parse(args.svg)
     root = tree.getroot()
-    dimensions = [float(elem) * args.m for elem in root.attrib["viewBox"].split()]
+    dimensions = [float(elem) * args.scale for elem in root.attrib["viewBox"].split()]
     base_shape = [
             (dimensions[0], dimensions[1]), 
             (dimensions[0], dimensions[3]), 
             (dimensions[2], dimensions[3]),
             (dimensions[2], dimensions[1])
     ]
-    vertices = get_vertices(iter_shapes(root, args.m), base_shape, args)
-    triangles = get_triangles(iter_shapes(root, args.m), base_shape, vertices, args)
+    vertices = get_vertices(iter_shapes(root, args.scale), base_shape, args)
+    triangles = get_triangles(iter_shapes(root, args.scale), base_shape, vertices, args)
     vertices = numpy.array(vertices)
     triangles = numpy.array(triangles)
     qr3d = mesh.Mesh(numpy.zeros(triangles.shape[0], dtype=mesh.Mesh.dtype))
@@ -74,11 +74,11 @@ def get_vertices(shapes, base_shape, args):
     vertices = set()
     for shape in shapes:
         for vertex in shape:
-            vertices.add(vertex + (args.zb,))
-            vertices.add(vertex + (args.zb + args.zf,))
+            vertices.add(vertex + (args.background_depth,))
+            vertices.add(vertex + (args.background_depth + args.foreground_depth,))
     for vertex in base_shape:
         vertices.add(vertex + (0,))
-        vertices.add(vertex + (args.zb,))
+        vertices.add(vertex + (args.background_depth,))
     
     return list(vertices)
 
@@ -87,25 +87,25 @@ def get_triangles(shapes, base_shape, vertices, args):
     triangles = []
     for shape in shapes:
         triangles.append([
-            vertices.index(shape[0] + (args.zb + args.zf,)),
-            vertices.index(shape[3] + (args.zb + args.zf,)),
-            vertices.index(shape[2] + (args.zb + args.zf,))
+            vertices.index(shape[0] + (args.background_depth + args.foreground_depth,)),
+            vertices.index(shape[3] + (args.background_depth + args.foreground_depth,)),
+            vertices.index(shape[2] + (args.background_depth + args.foreground_depth,))
         ])
         triangles.append([
-            vertices.index(shape[2] + (args.zb + args.zf,)),
-            vertices.index(shape[1] + (args.zb + args.zf,)),
-            vertices.index(shape[0] + (args.zb + args.zf,))
+            vertices.index(shape[2] + (args.background_depth + args.foreground_depth,)),
+            vertices.index(shape[1] + (args.background_depth + args.foreground_depth,)),
+            vertices.index(shape[0] + (args.background_depth + args.foreground_depth,))
         ])
         for i in range(4):
             triangles.append([
-                vertices.index(shape[i] + (args.zb + args.zf,)),
-                vertices.index(shape[i] + (args.zb,)),
-                vertices.index(shape[(i+1) % 4] + (args.zb + args.zf,))
+                vertices.index(shape[i] + (args.background_depth + args.foreground_depth,)),
+                vertices.index(shape[i] + (args.background_depth,)),
+                vertices.index(shape[(i+1) % 4] + (args.background_depth + args.foreground_depth,))
             ])
             triangles.append([
-                vertices.index(shape[i] + (args.zb,)),
-                vertices.index(shape[(i+1) % 4] + (args.zb,)),
-                vertices.index(shape[(i+1) % 4] + (args.zb + args.zf,))
+                vertices.index(shape[i] + (args.background_depth,)),
+                vertices.index(shape[(i+1) % 4] + (args.background_depth,)),
+                vertices.index(shape[(i+1) % 4] + (args.background_depth + args.foreground_depth,))
             ])
 
     triangles.append([
@@ -120,24 +120,24 @@ def get_triangles(shapes, base_shape, vertices, args):
     ])
     for i in range(4):
         triangles.append([
-            vertices.index(base_shape[i] + (args.zb,)),
+            vertices.index(base_shape[i] + (args.background_depth,)),
             vertices.index(base_shape[i] + (0,)),
-            vertices.index(base_shape[(i+1) % 4] + (args.zb,))
+            vertices.index(base_shape[(i+1) % 4] + (args.background_depth,))
         ])
         triangles.append([
             vertices.index(base_shape[i] + (0,)),
             vertices.index(base_shape[(i+1) % 4] + (0,)),
-            vertices.index(base_shape[(i+1) % 4] + (args.zb,))
+            vertices.index(base_shape[(i+1) % 4] + (args.background_depth,))
         ])
     triangles.append([
-        vertices.index(base_shape[0] + (args.zb,)),
-        vertices.index(base_shape[3] + (args.zb,)),
-        vertices.index(base_shape[2] + (args.zb,))
+        vertices.index(base_shape[0] + (args.background_depth,)),
+        vertices.index(base_shape[3] + (args.background_depth,)),
+        vertices.index(base_shape[2] + (args.background_depth,))
     ])
     triangles.append([
-        vertices.index(base_shape[2] + (args.zb,)),
-        vertices.index(base_shape[1] + (args.zb,)),
-        vertices.index(base_shape[0] + (args.zb,))
+        vertices.index(base_shape[2] + (args.background_depth,)),
+        vertices.index(base_shape[1] + (args.background_depth,)),
+        vertices.index(base_shape[0] + (args.background_depth,))
     ])
     return triangles
 

@@ -22,7 +22,7 @@ positional arguments:
 optional arguments:
   -h, --help            show this help message and exit
   --type {png,svg,jpg}, -t {png,svg,jpg}
-                        The type of file to create
+                        The type of file to create (Default: png)
   --box-size BOX_SIZE, -s BOX_SIZE
                         The size in millimeters of each box
   --border BORDER, -b BORDER

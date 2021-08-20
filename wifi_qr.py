@@ -12,7 +12,7 @@ def main():
     parser.add_argument("ssid", help="The network name")
     parser.add_argument("password", help="The network password")
     parser.add_argument("filename", help="The name to use for the image file")
-    parser.add_argument("--type", "-t", help="The type of file to create", 
+    parser.add_argument("--type", "-t", help="The type of file to create (Default: png)", 
             choices=["png", "svg", "jpg"], default="png")
     parser.add_argument("--box-size", "-s", help="The size in mm of each box", type=float, default=2.5)
     parser.add_argument("--border", "-b", help="The size in boxes of the border", type=int, default=4)
